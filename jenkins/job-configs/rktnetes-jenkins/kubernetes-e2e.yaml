@@ -1,0 +1,111 @@
+# Common publishers shared by all e2e jobs.
+- publisher:
+    name: e2e-publishers
+    publishers:
+        - junit-publisher
+        - gcs-uploader
+        - log-parser
+
+# Common attributes/actions shared by all e2e jobs.
+- e2e_job_defaults: &e2e_job_defaults
+    name: e2e_job_defaults
+    description: '{description} Test owner: {test-owner}.'
+    logrotate:
+        daysToKeep: 7
+    disabled: '{obj:disable_job}'
+    builders:
+        - shell: |
+            #!/bin/bash
+            {provider-env}
+            {job-env}
+            {post-env}
+            timeout -k {kill-timeout}m {timeout}m {runner} && rc=$? || rc=$?
+            if [[ ${{rc}} -ne 0 ]]; then
+                if [[ -x kubernetes/cluster/log-dump.sh && -d _artifacts ]]; then
+                    echo "Dumping logs for any remaining nodes"
+                    ./kubernetes/cluster/log-dump.sh _artifacts
+                fi
+            fi
+            {report-rc}
+    wrappers:
+        - ansicolor:
+            colormap: xterm
+        - timeout:
+            timeout: '{jenkins-timeout}'
+            fail: true
+        - timestamps
+        - workspace-cleanup:
+            dirmatch: true
+            external-deletion-command: 'sudo rm -rf %s'
+        - inject:
+            properties-content: |
+                # TODO, figure out a better way to get gcloud on the path
+                PATH=/home/jenkins/cloudsdk/google-cloud-sdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+                JENKINS_GCS_LOGS_PATH=gs://rktnetes-jenkins/logs
+                KUBE_GCS_RELEASE_BUCKET=rktnetes-kubernetes-release
+# Template for most e2e test jobs.
+- job-template:
+    name: 'kubernetes-e2e-{suffix}'
+    <<: *e2e_job_defaults
+    triggers:
+        - reverse:
+            jobs: '{trigger-job}'
+            result: success
+        - timed: '{cron-string}'
+    publishers:
+      - e2e-publishers:
+          recipients: '{emails}'
+
+- project:
+    name: kubernetes-e2e-gce-master
+    trigger-job: 'kubernetes-build'
+    test-owner: 'Build Cop'
+    provider-env: '{gce-provider-env}'
+    suffix:
+        - 'gce':
+            description: 'Runs all non-slow, non-serial, non-flaky, tests on GCE in parallel.'
+            timeout: 60  # See #21138
+            job-env: |
+                # This is the *only* job that should publish the last green version.
+                export E2E_PUBLISH_GREEN_VERSION="true"
+                # This list should match the list in kubernetes-pull-build-test-e2e-gce.
+                export GINKGO_TEST_ARGS="--ginkgo.skip=\[Slow\]|\[Serial\]|\[Disruptive\]|\[Flaky\]|\[Feature:.+\]"
+                export GINKGO_PARALLEL="y"
+                export PROJECT="coreos-rktnetes-testing"
+                export KUBE_GCE_MASTER_PROJECT="coreos-cloud"
+                export KUBE_OS_DISTRIBUTION="coreos"
+                export OS_DISTRIBUTION="coreos"
+                export KUBE_SSH_USER="core"
+                export KUBE_CONTAINER_RUNTIME=rkt
+                export KUBE_ENABLE_NODE_LOGGING=false
+                export KUBE_ENABLE_CLUSTER_MONITORING=none
+
+                export KUBE_GCE_MASTER_IMAGE="coreos-alpha-1010-1-0-v20160407"
+                export KUBE_RKT_VERSION=rkt-1.3.0-with-docker2aci
+
+                export KUBE_GCE_ZONE="us-east1-d"
+            runner: 'curl -fsS --retry 3  "https://raw.githubusercontent.com/euank/kubernetes/rktnetes_e2e/hack/jenkins/e2e-runner.sh" | bash -'
+            #        - 'gce-slow':
+            #            description: 'Runs slow tests on GCE, sequentially.'
+            #            timeout: 150  #  See #24072
+            #            job-env: |
+            #                export GINKGO_TEST_ARGS="--ginkgo.focus=\[Slow\] \
+            #                                         --ginkgo.skip=\[Serial\]|\[Disruptive\]|\[Flaky\]|\[Feature:.+\]"
+            #                export GINKGO_PARALLEL="y"
+            #                export PROJECT="coreos-rktnetes-testing"
+            #                export KUBE_GCE_MASTER_PROJECT="coreos-cloud"
+            #                export KUBE_OS_DISTRIBUTION="coreos"
+            #                export OS_DISTRIBUTION="coreos"
+            #                export KUBE_SSH_USER="core"
+            #                export KUBE_CONTAINER_RUNTIME=rkt
+            #                export KUBE_ENABLE_NODE_LOGGING=false
+            #                export KUBE_ENABLE_CLUSTER_MONITORING=none
+            #
+            #                export KUBE_GCE_MASTER_IMAGE="coreos-alpha-1010-1-0-v20160407"
+            #                export KUBE_RKT_VERSION=rkt-1.3.0-with-docker2aci
+            #
+            #                export JENKINS_GCS_LOGS_PATH=gs://rktnetes-jenkins/logs
+            #                export KUBE_GCE_ZONE="us-east1-d"
+            #            runner: 'curl -fsS --retry 3  "https://raw.githubusercontent.com/euank/kubernetes/rktnetes_e2e/hack/jenkins/e2e-runner.sh" | bash -'
+    jobs:
+        - 'kubernetes-e2e-{suffix}'
