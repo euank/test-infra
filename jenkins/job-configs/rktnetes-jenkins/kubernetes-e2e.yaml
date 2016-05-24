@@ -4,7 +4,8 @@
     publishers:
         - junit-publisher
         - gcs-uploader
-        - log-parser
+        # - log-parser
+        # TODO, get proper log-parser config
 
 # Common attributes/actions shared by all e2e jobs.
 - e2e_job_defaults: &e2e_job_defaults
@@ -66,10 +67,11 @@
             description: 'Runs all non-slow, non-serial, non-flaky, tests on GCE in parallel.'
             timeout: 60  # See #21138
             job-env: |
+                export FAIL_ON_GCP_RESOURCE_LEAK="false" # Only needed if you run multiple jobs in one project
                 # This is the *only* job that should publish the last green version.
                 export E2E_PUBLISH_GREEN_VERSION="true"
-                # This list should match the list in kubernetes-pull-build-test-e2e-gce.
-                export GINKGO_TEST_ARGS="--ginkgo.skip=\[Slow\]|\[Serial\]|\[Disruptive\]|\[Flaky\]|\[Feature:.+\]"
+                # This list matches the default e2e list, but with additional filtering for intentionally unsupported items:
+                export GINKGO_TEST_ARGS="--ginkgo.skip=\[Slow\]|\[Serial\]|\[Disruptive\]|\[Flaky\]|\[Feature:.+\]|init.containers"
                 export GINKGO_PARALLEL="y"
                 export PROJECT="coreos-rktnetes-testing"
                 export KUBE_GCE_MASTER_PROJECT="coreos-cloud"
