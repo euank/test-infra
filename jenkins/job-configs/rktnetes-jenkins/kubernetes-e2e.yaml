@@ -67,6 +67,10 @@
             description: 'Runs all non-slow, non-serial, non-flaky, tests on GCE in parallel.'
             timeout: 60  # See #21138
             job-env: |
+                export KUBE_GCE_MASTER_PROJECT="coreos-cloud"
+                export KUBE_GCE_MASTER_IMAGE="coreos-alpha-1053-2-0-v20160520"
+                export KUBE_RKT_VERSION=1.6.0
+
                 export FAIL_ON_GCP_RESOURCE_LEAK="false" # Only needed if you run multiple jobs in one project
                 # This is the *only* job that should publish the last green version.
                 export E2E_PUBLISH_GREEN_VERSION="true"
@@ -74,7 +78,6 @@
                 export GINKGO_TEST_ARGS="--ginkgo.skip=\[Slow\]|\[Serial\]|\[Disruptive\]|\[Flaky\]|\[Feature:.+\]|init.containers"
                 export GINKGO_PARALLEL="y"
                 export PROJECT="coreos-rktnetes-testing"
-                export KUBE_GCE_MASTER_PROJECT="coreos-cloud"
                 export KUBE_OS_DISTRIBUTION="coreos"
                 export OS_DISTRIBUTION="coreos"
                 export KUBE_SSH_USER="core"
@@ -82,8 +85,8 @@
                 export KUBE_ENABLE_NODE_LOGGING=false
                 export KUBE_ENABLE_CLUSTER_MONITORING=none
 
-                export KUBE_GCE_MASTER_IMAGE="coreos-alpha-1032-0-0-v20160428"
-                export KUBE_RKT_VERSION=1.6.0
+                export KUBE_GCE_NODE_PROJECT="${{KUBE_GCE_MASTER_PROJECT}}"
+                export KUBE_GCE_NODE_IMAGE="${{KUBE_GCE_MASTER_IMAGE}}"
 
                 export KUBE_GCE_ZONE="us-east1-d"
             runner: 'curl -fsS --retry 3  "https://raw.githubusercontent.com/euank/kubernetes/rktnetes_e2e/hack/jenkins/e2e-runner.sh" | bash -'
