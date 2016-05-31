@@ -83,7 +83,7 @@
                 export KUBE_SSH_USER="core"
                 export KUBE_CONTAINER_RUNTIME=rkt
                 export KUBE_ENABLE_NODE_LOGGING=false
-                export KUBE_ENABLE_CLUSTER_MONITORING=none
+                export KUBE_ENABLE_CLUSTER_MONITORING=standalone
 
                 export KUBE_GCE_NODE_PROJECT="${{KUBE_GCE_MASTER_PROJECT}}"
                 export KUBE_GCE_NODE_IMAGE="${{KUBE_GCE_MASTER_IMAGE}}"
@@ -111,7 +111,7 @@
                 export KUBE_SSH_USER="core"
                 export KUBE_CONTAINER_RUNTIME=rkt
                 export KUBE_ENABLE_NODE_LOGGING=false
-                export KUBE_ENABLE_CLUSTER_MONITORING=none
+                export KUBE_ENABLE_CLUSTER_MONITORING=standalone
 
                 export KUBE_GCE_NODE_PROJECT="${{KUBE_GCE_MASTER_PROJECT}}"
                 export KUBE_GCE_NODE_IMAGE="${{KUBE_GCE_MASTER_IMAGE}}"
