@@ -67,6 +67,7 @@
                 PATH=/home/jenkins/cloudsdk/google-cloud-sdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
                 JENKINS_GCS_LOGS_PATH=gs://rktnetes-jenkins/logs
                 KUBE_GCS_RELEASE_BUCKET=rktnetes-kubernetes-release
+                KUBE_GCS_DEV_RELEASE_BUCKET=rktnetes-kubernetes-release
         - workspace-cleanup:
             dirmatch: true
             external-deletion-command: 'sudo rm -rf %s'
