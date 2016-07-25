@@ -42,4 +42,13 @@ if ! docker inspect job-builder-local &> /dev/null; then
   fi
 fi
 
+if ! docker inspect rktnetes-jenkins-proxy &> /dev/null; then
+  docker run --name="rktnetes-jenkins-proxy" \
+    -d --net=host \
+    -e PROXY_TO=127.0.0.1:8080 \
+    -e EXTRA_HEADER='X-Forwarded-User: rktnetes-deploy-bot' \
+    quay.io/euank/nginx-proxy-header
+  sleep 1
+fi
+
 docker exec job-builder-local jenkins-jobs update ${config_dir}
