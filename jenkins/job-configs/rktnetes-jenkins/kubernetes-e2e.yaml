@@ -69,8 +69,8 @@
             timeout: 60  # See #21138
             job-env: |
                 export KUBE_GCE_MASTER_PROJECT="coreos-cloud"
-                export KUBE_GCE_MASTER_IMAGE="coreos-alpha-1053-2-0-v20160520"
-                export KUBE_RKT_VERSION=1.9.1
+                export KUBE_GCE_MASTER_IMAGE="coreos-alpha-1153-0-0-v20160829"
+                export KUBE_RKT_VERSION=1.13.0
 
                 export FAIL_ON_GCP_RESOURCE_LEAK="false" # Only needed if you run multiple jobs in one project
                 # This is the *only* job that should publish the last green version.
@@ -97,8 +97,8 @@
                 export E2E_NAME=rktnetes-e2e-slow
 
                 export KUBE_GCE_MASTER_PROJECT="coreos-cloud"
-                export KUBE_GCE_MASTER_IMAGE="coreos-alpha-1053-2-0-v20160520"
-                export KUBE_RKT_VERSION=1.9.1
+                export KUBE_GCE_MASTER_IMAGE="coreos-alpha-1153-0-0-v20160829"
+                export KUBE_RKT_VERSION=1.13.0
 
                 export FAIL_ON_GCP_RESOURCE_LEAK="false" # Only needed if you run multiple jobs in one project
                 # This list matches the default e2e list, but with additional filtering for intentionally unsupported items:
